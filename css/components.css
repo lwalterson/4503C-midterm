@@ -1,0 +1,82 @@
+/* ── Logo ── */
+.logo {
+  font-size: 4rem;
+  font-weight: 700;
+  color: var(--color-accent);
+  letter-spacing: -1px;
+  margin-bottom: 0.5rem;
+}
+
+/* ── Tagline ── */
+.tagline {
+  font-size: 1.25rem;
+  color: var(--color-text-muted);
+  margin-bottom: 1.25rem;
+}
+
+/* ── Description ── */
+.description {
+  font-size: 1rem;
+  color: var(--color-text-muted);
+  margin-bottom: 2rem;
+}
+
+/* ── Button ── */
+.btn {
+  display: inline-block;
+  background-color: var(--color-accent);
+  color: #000;
+  font-weight: 600;
+  padding: 0.75rem 2rem;
+  border-radius: 50px;
+  transition: opacity 0.2s;
+}
+
+.btn:hover {
+  opacity: 0.85;
+}
+
+/* ── Feature Cards ── */
+.feature-card {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 2rem 1.5rem;
+}
+
+.feature-icon {
+  display: block;
+  font-size: 2rem;
+  color: var(--color-accent);
+  margin-bottom: 0.75rem;
+}
+
+.feature-card h3 {
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+}
+
+.feature-card p {
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+}
+
+/* ── Disclaimer ── */
+.disclaimer p {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 0.75rem 1.25rem;
+}
+
+.disclaimer strong {
+  color: var(--color-text);
+}
+
+/* ── Footer ── */
+.footer p {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}

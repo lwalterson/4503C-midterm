@@ -1,0 +1,36 @@
+/* ── Variables ── */
+:root {
+  --color-bg: #0f0f0f;
+  --color-surface: #1a1a1a;
+  --color-accent: #1db954;
+  --color-text: #ffffff;
+  --color-text-muted: #a0a0a0;
+  --color-border: #2a2a2a;
+  --font-base: 'Segoe UI', system-ui, sans-serif;
+  --radius: 8px;
+}
+
+/* ── Reset ── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* ── Base ── */
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-base);
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+h1, h2, h3 {
+  line-height: 1.2;
+}
+
+a {
+  color: var(--color-accent);
+  text-decoration: none;
+}
