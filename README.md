@@ -12,6 +12,7 @@ A browser-based music streaming app built with vanilla HTML, CSS, and JavaScript
 - **Delete Playlist** — Remove a playlist entirely
 - **Add Songs to Playlist** — Add any song from the library to a playlist
 - **Remove Songs from Playlist** — Remove individual songs from a playlist
+- **Lyrics Viewer** — View the lyrics of the currently playing song in a side panel
 
 ---
 
@@ -38,11 +39,12 @@ music-app/
 │   ├── layout.css        # Responsive grid/flexbox layout
 │   └── components.css    # Player, cards, modals, sidebar
 ├── js/
-│   ├── data.js           # Static song library
+│   ├── data.js           # Static song library (includes lyrics per song)
 │   ├── storage.js        # localStorage read/write (swappable)
 │   ├── player.js         # Play/pause, current track state
 │   ├── search.js         # Search and filter logic
 │   ├── playlist.js       # Playlist CRUD operations
+│   ├── lyrics.js         # Lyrics panel show/hide and render logic
 │   └── app.js            # App init, event wiring, UI rendering
 └── assets/
     └── audio/            # Audio files or URLs
@@ -52,7 +54,7 @@ music-app/
 
 ## Data Design
 
-**Songs** are static and defined in `data.js`. Each song has an `id`, `title`, `artist`, `album`, `duration`, `src`, and `cover`.
+**Songs** are static and defined in `data.js`. Each song has an `id`, `title`, `artist`, `album`, `duration`, `src`, `cover`, and `lyrics`.
 
 **Playlists** are stored in localStorage as an array of objects, each with an `id`, `name`, `createdAt` timestamp, and a `songIds` array referencing song IDs.
 

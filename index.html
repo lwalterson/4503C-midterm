@@ -7,57 +7,90 @@
     <link rel="stylesheet" href="css/main.css" />
     <link rel="stylesheet" href="css/layout.css" />
     <link rel="stylesheet" href="css/components.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   </head>
   <body>
+    <div class="app-layout">
 
-    <header class="hero">
-      <div class="hero-content">
-        <h1 class="logo">Streamline</h1>
-        <p class="tagline">Your music, your playlists, your way.</p>
-        <p class="description">
-          A lightweight music streaming app built with HTML, CSS, and JavaScript.
-          Search songs, build playlists, and enjoy uninterrupted playback —
-          all in your browser.
-        </p>
-        <a href="#" class="btn">Get Started</a>
+      <aside id="sidebar">
+        <div id="now-playing">
+          <p id="player-title">No song playing</p>
+          <p id="player-artist"></p>
+        </div>
+        <input type="range" id="progress-bar" value="0" min="0" step="1" />
+        <div id="player-controls">
+          <button id="play-pause-btn" tabindex="1">Play</button>
+          <button id="skip-btn" tabindex="2">Skip</button>
+        </div>
+        <div id="lyrics-section">
+          <button id="lyrics-toggle-btn" tabindex="3">Show Lyrics</button>
+          <div id="lyrics-panel">
+            <button id="lyrics-close-btn">Close</button>
+            <div id="lyrics-content"></div>
+          </div>
+        </div>
+      </aside>
+
+      <div class="main">
+
+        <header id="top-bar">
+          <button id="logo-btn" tabindex="4">Streamline</button>
+          <button id="back-btn" tabindex="5">Back</button>
+          <input type="text" id="search-input" tabindex="6" placeholder="Search songs..." />
+          <button id="search-btn" tabindex="7">Search</button>
+        </header>
+
+        <main id="content">
+
+          <!-- Home view -->
+          <div id="view-home" class="view">
+            <div id="home-actions">
+              <button id="create-playlist-btn" tabindex="8">New Playlist</button>
+              <button id="add-song-btn" tabindex="9">Add Song</button>
+            </div>
+            <div id="playlist-grid"></div>
+          </div>
+
+          <!-- Playlist view -->
+          <div id="view-playlist" class="view hidden">
+            <h1 id="playlist-title"></h1>
+            <button id="delete-playlist-btn">Delete Playlist</button>
+            <input type="text" id="playlist-search-input" placeholder="Search this playlist..." />
+            <ul id="playlist-song-list"></ul>
+          </div>
+
+          <!-- Search results view -->
+          <div id="view-search" class="view hidden">
+            <ul id="search-results-list"></ul>
+          </div>
+
+        </main>
       </div>
-    </header>
-
-    <section class="features">
-      <h2>Features</h2>
-      <div class="feature-grid">
-        <div class="feature-card">
-          <span class="feature-icon">&#9834;</span>
-          <h3>Search</h3>
-          <p>Find songs instantly by title.</p>
-        </div>
-        <div class="feature-card">
-          <span class="feature-icon">&#9654;</span>
-          <h3>Playback</h3>
-          <p>Play and pause with a persistent player bar.</p>
-        </div>
-        <div class="feature-card">
-          <span class="feature-icon">&#9776;</span>
-          <h3>Playlists</h3>
-          <p>Create, manage, and delete your own playlists.</p>
-        </div>
-        <div class="feature-card">
-          <span class="feature-icon">&#43;</span>
-          <h3>Your Library</h3>
-          <p>Add and remove songs from any playlist.</p>
-        </div>
-      </div>
-    </section>
-
-    <div class="disclaimer">
-      <p>
-        <strong>Note:</strong> This page is an example and does not reflect the final design of the application.
-      </p>
     </div>
 
-    <footer class="footer">
-      <p>&copy; 2026 Streamline. Built with HTML, CSS &amp; JavaScript.</p>
-    </footer>
+    <!-- Add Song Modal -->
+    <div id="add-song-modal" class="hidden">
+      <div id="modal-content">
+        <h2>Add Song</h2>
+        <input type="file" id="song-file" accept="audio/*" />
+        <input type="text" id="song-title" placeholder="Title *" />
+        <input type="text" id="song-artist" placeholder="Artist" />
+        <input type="text" id="song-album" placeholder="Album" />
+        <textarea id="song-lyrics" placeholder="Lyrics"></textarea>
+        <div id="modal-actions">
+          <button id="modal-cancel-btn">Cancel</button>
+          <button id="modal-submit-btn">Upload</button>
+        </div>
+      </div>
+    </div>
 
+    <audio id="audio-player"></audio>
+
+    <script src="js/storage.js"></script>
+    <script src="js/player.js"></script>
+    <script src="js/search.js"></script>
+    <script src="js/playlist.js"></script>
+    <script src="js/lyrics.js"></script>
+    <script src="js/app.js"></script>
   </body>
 </html>
