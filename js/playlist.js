@@ -7,37 +7,25 @@ const Playlist = (() => {
   }
 
   async function create(name) {
-    const playlists = await getPlaylists();
-    const newPlaylist = {
-      id: "pl_" + Date.now(),
-      name: name.trim(),
-      createdAt: Date.now(),
-      songIds: []
-    };
-    playlists.push(newPlaylist);
-    await savePlaylists(playlists);
-    return newPlaylist;
+    return await createPlaylist(name.trim());
   }
 
   async function removePlaylist(playlistId) {
-    const playlists = await getPlaylists();
-    await savePlaylists(playlists.filter(p => p.id !== playlistId));
+    await deletePlaylist(playlistId);
   }
 
   async function addSong(playlistId, songId) {
     const playlists = await getPlaylists();
     const playlist = playlists.find(p => p.id === playlistId);
     if (!playlist || playlist.songIds.includes(songId)) return;
-    playlist.songIds.push(songId);
-    await savePlaylists(playlists);
+    await updatePlaylistSongs(playlistId, [...playlist.songIds, songId]);
   }
 
   async function removeSong(playlistId, songId) {
     const playlists = await getPlaylists();
     const playlist = playlists.find(p => p.id === playlistId);
     if (!playlist) return;
-    playlist.songIds = playlist.songIds.filter(id => id !== songId);
-    await savePlaylists(playlists);
+    await updatePlaylistSongs(playlistId, playlist.songIds.filter(id => id !== songId));
   }
 
   async function getSongs(playlistId) {

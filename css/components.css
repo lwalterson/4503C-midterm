@@ -509,3 +509,155 @@
     font-size: 0.75rem;
   }
 }
+
+/* ── Auth Overlay ── */
+#auth-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: var(--color-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+#auth-overlay.hidden {
+  display: none;
+}
+
+#auth-container {
+  width: 100%;
+  max-width: 400px;
+  padding: 2rem;
+  border: 2px solid var(--color-accent);
+  border-radius: var(--radius-sm);
+}
+
+#auth-title {
+  color: var(--color-accent);
+  font-size: 1.75rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+#auth-tabs {
+  display: flex;
+  margin-bottom: 1.5rem;
+  border: 2px solid var(--color-accent);
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+}
+
+.auth-tab {
+  flex: 1;
+  padding: 0.5rem 1rem;
+  font-weight: 600;
+  color: var(--color-accent);
+  background: none;
+}
+
+.auth-tab.active {
+  background-color: var(--color-accent);
+  color: #ffffff;
+}
+
+#auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+#auth-email,
+#auth-password,
+#auth-confirm-password {
+  width: 100%;
+  padding: 0.5rem 1rem;
+  border: 2px solid var(--color-accent);
+  border-radius: var(--radius-pill);
+  font-family: var(--font-base);
+  font-size: 0.95rem;
+  outline: none;
+  color: var(--color-text);
+}
+
+#auth-email:focus,
+#auth-password:focus,
+#auth-confirm-password:focus {
+  box-shadow: 0 0 0 3px rgba(59, 111, 232, 0.15);
+}
+
+#auth-message {
+  font-size: 0.875rem;
+  padding: 0.25rem 0;
+}
+
+#auth-message.auth-error {
+  color: #cc0000;
+}
+
+#auth-message.auth-success {
+  color: #007700;
+}
+
+#auth-submit-btn {
+  padding: 0.5rem 1.5rem;
+  border-radius: var(--radius-pill);
+  background-color: var(--color-accent);
+  color: #ffffff;
+  font-weight: 600;
+}
+
+#auth-submit-btn:hover {
+  opacity: 0.85;
+}
+
+#auth-submit-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── User Info / Logout ── */
+#user-email {
+  font-size: 0.85rem;
+  color: var(--color-text);
+  opacity: 0.7;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 150px;
+}
+
+#logout-btn {
+  padding: 0.4rem 1rem;
+  border-radius: var(--radius-pill);
+  border: 2px solid var(--color-accent);
+  color: var(--color-accent);
+  font-weight: 600;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
+#logout-btn:hover {
+  background-color: var(--color-accent);
+  color: #ffffff;
+}
+
+#delete-account-btn {
+  padding: 0.4rem 1rem;
+  border-radius: var(--radius-pill);
+  border: 2px solid #cc0000;
+  color: #cc0000;
+  font-weight: 600;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
+#delete-account-btn:hover {
+  background-color: #cc0000;
+  color: #ffffff;
+}
+
+#delete-account-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

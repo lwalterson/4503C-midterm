@@ -10,7 +10,26 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   </head>
   <body>
-    <div class="app-layout">
+
+    <!-- Auth overlay (visible until logged in) -->
+    <div id="auth-overlay">
+      <div id="auth-container">
+        <h1 id="auth-title">Streamline</h1>
+        <div id="auth-tabs">
+          <button id="tab-signin" class="auth-tab active">Sign In</button>
+          <button id="tab-signup" class="auth-tab">Sign Up</button>
+        </div>
+        <form id="auth-form">
+          <input type="email" id="auth-email" placeholder="Email" autocomplete="email" required />
+          <input type="password" id="auth-password" placeholder="Password" autocomplete="current-password" minlength="6" required />
+          <input type="password" id="auth-confirm-password" placeholder="Confirm Password" autocomplete="new-password" minlength="6" class="hidden" />
+          <p id="auth-message" class="hidden"></p>
+          <button type="submit" id="auth-submit-btn">Sign In</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="app-layout hidden" id="app-layout">
 
       <aside id="sidebar">
         <div id="now-playing">
@@ -38,6 +57,9 @@
           <button id="back-btn" tabindex="5">Back</button>
           <input type="text" id="search-input" tabindex="6" placeholder="Search songs..." />
           <button id="search-btn" tabindex="7">Search</button>
+          <span id="user-email"></span>
+          <button id="logout-btn">Logout</button>
+          <button id="delete-account-btn">Delete Account</button>
         </header>
 
         <main id="content">
