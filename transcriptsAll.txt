@@ -6023,3 +6023,229 @@ when this occurs
 
 
 
+
+─────────────────────────────────────────────────────────────────────────────
+SESSION: Security Review, Auth Refactor & RLS Policies
+Date: 2026-04-29
+─────────────────────────────────────────────────────────────────────────────
+
+❯ can you summarise the function of each .js file in the js folder
+
+● js/lyrics.js — Controls the lyrics side-panel. Handles open/close/toggle, and re-renders the panel
+  content whenever the current song changes — splitting the lyrics string into line-by-line elements
+  and tagging section labels (lines starting with [) with a special CSS class.
+
+  js/search.js — Real-time song filtering. Listens to the search input and filters the in-memory song
+  list by title, artist, or album on every keystroke, then fires a callback with the matching results.
+
+  js/player.js — Manages audio playback state. Wraps the <audio> element to handle load, play, pause,
+  toggle, and skip. On init it restores the last-played song and position from saved state. When a song
+  ends, it automatically advances to the next playlist track (or loops a search result). Saves state to
+  localStorage after every action.
+
+  js/playlist.js — A thin wrapper around the Supabase playlist functions from storage.js. Exposes clean
+  async methods — getAll, create, removePlaylist, addSong, removeSong, getSongs — so the rest of the
+  app does not call storage directly.
+
+  js/storage.js — All data persistence. Contains two layers: Supabase (auth functions, song
+  upload/save/fetch, playlist CRUD) and localStorage (saving and restoring the player playback state
+  between sessions).
+
+  js/app.js — The main entry point and UI coordinator. Initialises all other modules on page load, wires
+  up all event listeners (navigation, player controls, search, playlist management, the add-song modal),
+  and contains all the DOM rendering functions (renderHome, renderPlaylist, renderSearchResults). Also
+  handled the sign-in/sign-up/logout/delete-account auth UI before the refactor.
+
+❯ can we separate the account handling into a separate file for easier navigation
+
+● The plan: extract startApp(), setupAuthUI(), and the DOMContentLoaded bootstrap from app.js into a
+  new js/auth.js, then add it to the HTML after app.js (since startApp calls init() which lives in
+  app.js). No logic changes — pure cut and paste.
+
+❯ this plan will not affect the current function of the app?
+
+● Correct — pure refactor, no logic changes. The three things being moved (startApp, setupAuthUI, and
+  the DOMContentLoaded listener) are cut from app.js and pasted verbatim into auth.js. The only other
+  change is adding <script src="js/auth.js"></script> after app.js in the HTML, so the load order
+  keeps init() available when startApp calls it.
+
+❯ yes
+
+● Created js/auth.js with startApp(), setupAuthUI(), and the DOMContentLoaded listener.
+  Removed those functions from app.js.
+  Added <script src="js/auth.js"></script> to index.html after app.js.
+
+  js/auth.js now owns all auth logic. js/app.js is down to app initialisation and UI rendering only.
+
+❯ how can i open this to test it
+
+● Since this is a plain HTML/JS project (no build step), you need a local web server — browsers block
+  Supabase requests from file:// URLs.
+
+  Node:   ! npx serve .
+  Python: ! python -m http.server 8000
+
+  Then open http://localhost:8000 in your browser.
+
+❯ Supabase key exposed in storage.js was pointed out as a security risk how would I fix this and still
+  keep things operational
+
+● The key in storage.js is Supabase anon key, intentionally designed to be public-facing in client-side
+  apps. Security is enforced server-side through Row Level Security (RLS), not by hiding this key.
+
+  The two actual risks:
+  1. It is committed to git — anyone with repo access can see it
+  2. If RLS is misconfigured, someone could use the key to read/write data they should not
+
+  Practical fix for plain HTML/JS: move to a gitignored js/config.js. However since the app is deployed
+  on Netlify via GitHub, gitignoring config.js would break the deployment. Best recommendation: leave
+  the key as-is and ensure RLS is properly configured instead.
+
+❯ lets check the rls policies
+
+● Analysed storage.js queries:
+
+  songs table:
+  - getAllSongs() fetches all songs with no user filter (shared library, intentional)
+  - saveUserSong() inserts with user_id (correct)
+  - deleteAccount() relies on RLS to scope correctly
+
+  playlists table:
+  - getPlaylists() fetches all playlists with no user filter — needs RLS to scope by user
+  - createPlaylist() inserts with no user_id — needs a DEFAULT auth.uid() column default
+  - deletePlaylist() and updatePlaylistSongs() filter by id only — need RLS to prevent cross-user edits
+
+❯ can you explain what the information on the charts means and what to do with it
+
+● Operation — the type of database action (SELECT, INSERT, UPDATE, DELETE).
+  Policy — the rule Supabase enforces before allowing that action.
+
+  auth.role() = authenticated: user just needs to be logged in.
+  auth.uid() = user_id: logged-in user ID must match the user_id column on that row.
+
+  Go to Supabase dashboard → Table Editor → select table → RLS tab. For each operation, check if a
+  matching policy exists. If missing, click New Policy and add it.
+
+❯ yes (requesting the SQL statements)
+
+● Songs table:
+  ALTER TABLE songs ENABLE ROW LEVEL SECURITY;
+  CREATE POLICY "Authenticated users can read all songs" ON songs FOR SELECT TO authenticated USING (true);
+  CREATE POLICY "Users can insert own songs" ON songs FOR INSERT TO authenticated WITH CHECK (auth.uid() = user_id);
+  CREATE POLICY "Users can delete own songs" ON songs FOR DELETE TO authenticated USING (auth.uid() = user_id);
+
+  Playlists table:
+  ALTER TABLE playlists ENABLE ROW LEVEL SECURITY;
+  CREATE POLICY "Users can read own playlists" ON playlists FOR SELECT TO authenticated USING (auth.uid() = user_id);
+  CREATE POLICY "Users can insert own playlists" ON playlists FOR INSERT TO authenticated WITH CHECK (auth.uid() = user_id);
+  CREATE POLICY "Users can update own playlists" ON playlists FOR UPDATE TO authenticated USING (auth.uid() = user_id);
+  CREATE POLICY "Users can delete own playlists" ON playlists FOR DELETE TO authenticated USING (auth.uid() = user_id);
+  ALTER TABLE playlists ALTER COLUMN user_id SET DEFAULT auth.uid();
+
+❯ (pasted pg_policies results)
+
+  playlists | Users manage own playlists                 | ALL    | (auth.uid() = user_id)
+  songs     | Enable insert for authenticated users only | INSERT | WITH CHECK (true)
+  songs     | Insert own songs                           | INSERT | WITH CHECK (auth.uid() = user_id)
+  songs     | See public and own songs                   | SELECT | (user_id IS NULL) OR (auth.uid() = user_id)
+
+● Playlists — fully covered, nothing to do.
+
+  Songs — three issues:
+  1. Two duplicate INSERT policies. The loose one (WITH CHECK true) undermines the strict one. Delete it.
+  2. SELECT policy is correct as-is — public songs visible to all, user uploads to owner only.
+  3. No DELETE policy — needed for deleteAccount() cleanup.
+
+  Run:
+  DROP POLICY "Enable insert for authenticated users only" ON songs;
+  CREATE POLICY "Users can delete own songs" ON songs FOR DELETE TO authenticated USING (auth.uid() = user_id);
+
+❯ to confirm this will still allow songs uploaded by a user to only be seen by the user correct
+
+● Correction — the USING (true) SELECT policy I originally suggested would make ALL songs visible to
+  ALL users. The original (user_id IS NULL) OR (auth.uid() = user_id) was correct. Do not change the
+  SELECT policy. Only run the DROP and the DELETE policy creation.
+
+❯ Error: policy "Users can delete own songs" already exists
+
+● That policy already exists — all good. The only thing left is:
+  DROP POLICY "Enable insert for authenticated users only" ON songs;
+
+❯ will any of these changes disrupt who could make and see playlist and song uploads before we started
+
+● No. Playlists policy was already there. Songs SELECT is unchanged. Songs DELETE already existed.
+  Only real change is dropping the loose INSERT policy — saveUserSong() always sets user_id so the
+  remaining strict policy covers all legitimate inserts. Existing data is unaffected — RLS only
+  controls access, it never modifies data.
+
+❯ why did these changes improve security
+
+● Two specific weaknesses before:
+
+  1. Loose INSERT policy had WITH CHECK (true) — any logged-in user could insert a song row with any
+     user_id, including someone else account. They could plant songs under another user account.
+
+  2. Duplicate policies created a conflict — Supabase allows an action if EITHER policy passes. So
+     even though "Insert own songs" was correctly scoped, the loose policy completely undermined it.
+
+❯ if i were to do this (move credentials to config.js) how would it affect users ability to use the app
+
+● No effect on users — config.js is just a file loaded by the browser the same way storage.js is.
+  The credentials are still there at runtime, just no longer tracked in git. Only people cloning the
+  repo are affected — they would need to create their own config.js from the example template.
+
+❯ I have this deployed on netlify through the github would that be affected
+
+● Yes — if config.js is gitignored it will not be in the repo, so Netlify will not have it and the
+  deployed app will break. The fix would be Netlify environment variables, but with no build step the
+  browser cannot read process.env directly. Recommendation: leave the key as-is. The RLS changes are
+  the meaningful security improvement.
+
+❯ can you resumarise the function of each js file with the new file in mind
+
+● js/storage.js — All data persistence. Supabase layer (auth, songs, playlists) and localStorage
+  layer (player state between sessions).
+
+  js/auth.js — Authentication UI and session bootstrap. Sign-in/sign-up tabs, form submission,
+  logout, account deletion, and the DOMContentLoaded entry point.
+
+  js/app.js — Main UI coordinator. Initialises all modules, wires up event listeners, and contains
+  all DOM rendering functions.
+
+  js/player.js — Manages audio playback. Wraps the <audio> element, restores last-played song on
+  init, auto-advances through playlists, saves state to localStorage after every action.
+
+  js/playlist.js — Thin wrapper around Supabase playlist functions. Exposes getAll, create,
+  removePlaylist, addSong, removeSong, getSongs.
+
+  js/search.js — Real-time song filtering by title, artist, or album on every keystroke.
+
+  js/lyrics.js — Controls the lyrics side-panel. Handles open/close/toggle and re-renders content
+  when the current song changes.
+
+❯ can you explain how supabase protects the exposed credentials and why it is designed like this
+
+● The anon key is a JWT that identifies your project and signals the request is from a public client.
+  It is explicitly not a secret — Supabase documents it as safe to include in client-side code. The
+  service_role key is the one that must never be exposed as it bypasses all RLS.
+
+  Security is enforced at the database level through RLS. Every query made with the anon key goes
+  through RLS policies before data is returned or modified. The key gets them through the door, but
+  RLS controls every room inside.
+
+  Supabase is designed this way to let you skip writing a backend server by moving access control
+  into the database. The tradeoff is that the key is public, but the database is locked down.
+
+❯ with the current system if someone were to download the github could they run the app locally with
+  all features
+
+● Yes — credentials are in storage.js, anyone who clones the repo can run the app locally and connect
+  to the live Supabase backend. They could sign up, see public songs, upload songs, and create
+  playlists under their own account.
+
+  What they cannot do thanks to RLS: see other users uploads or playlists, or modify/delete anyone
+  else data.
+
+  Practical concern is resource abuse — storage quota and auth limits. Fix: Supabase dashboard →
+  Authentication → Settings → Restrict sign-ups → whitelist your email only.
+
